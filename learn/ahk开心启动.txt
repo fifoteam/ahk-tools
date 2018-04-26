@@ -1,0 +1,155 @@
+;--------------------------------------------
+;
+;  【开心启动菜单】 v1.0  By FeiYue
+;
+;  ☆ 特色：易使用，易新增，飞速启动酷狗
+;
+;  ☆ 点击“脚本编辑”可以方便地自主添加功能和删除按钮
+;
+;--------------------------------------------
+
+
+*MButton::    ;-- 启动方式为按鼠标中键
+
+;------ 已显示菜单就隐藏 ------
+DetectHiddenWindows, Off
+Gui, HappyRun:+LastFoundExist
+IfWinExist, % "ahk_id " WinExist()
+{
+  WinHide
+  Return
+}
+
+;------ 鼠标中键按下0.5秒以上启用原功能 ------
+KeyWait, MButton, T0.5
+if ErrorLevel
+{
+  Click, M
+  Return
+}
+Send {MButton Up}
+
+;------ 已生成菜单就显示 ------
+Gui, HappyRun:+LastFoundExist
+IfWinExist
+  Goto, Show_GUI
+
+;------ 生成并显示菜单 ------
+Gui, HappyRun:New
+Gui, +AlwaysOnTop +Owner -MinimizeBox +E0x08000000
+Gui, Font, s12
+Gui, Color, EDF5FF
+Gui, Add, Button, w450 gAdd_New, + 快 速 新 增 软 件 +
+FileRead, s, %A_ScriptFullPath%
+k:=0
+Loop, Parse, s, `n, `r
+  if RegExMatch(A_LoopField,"^\s*\[(\S+)\]:(?:$|\s)",r)
+  {
+    j:=Mod(++k,3)=1 ? "xm":"xp+150"
+    Gui, Add, Button, %j% gAll_Run r1, %r1%
+  }
+Gui, Show, Hide, ^_^ 开心启动菜单 --<<@
+
+;----- 获取“酷狗音乐”按钮的位置 ------
+Gui, +LastFound
+ControlGetPos, x, y, w, h, 酷狗音乐
+if (x<>"")
+  kugou_x:=x+w//2, kugou_y:=y+h//2
+else
+{
+  WinGetPos,,, w, h
+  kugou_x:=w//2, kugou_y:=h//2
+}
+
+;----- 以“酷狗音乐”按钮为中心显示 ------
+Show_GUI:
+CoordMode, Mouse, Screen
+MouseGetPos, x, y
+x:=Round(x-kugou_x), y:=Round(y-kugou_y)
+Gui, HappyRun:Show, NA x%x% y%y%
+Return
+
+;----- 点击“新增软件”可以轻易扩展菜单 ------
+Add_New:
+Gui, Cancel
+FileSelectFile, f
+IfNotExist, %f%
+  Return
+SplitPath, f, name, dir
+name:=RegExReplace(name,"\s+","_")
+s=`n`n[%name%]:`nRun, "%f%"`n  , %dir%
+  , UseErrorLevel`nReturn`n
+FileAppend, %s%, %A_ScriptFullPath%
+Reload
+Return
+
+
+All_Run:
+k:=A_GuiControl
+if k not in 增大音量,减小音量
+  Gui, Cancel
+if IsLabel("[" k "]")
+  Goto, [%k%]
+Return
+
+
+[脚本重启]:
+SplitPath, A_ScriptName,,,, name
+IfWinExist, %name% ahk_class Notepad
+{
+  PostMessage, 0x111, 3
+  Sleep, 500
+}
+Reload
+Return
+
+
+[切换静音]:
+Send {Volume_Mute}
+Return
+
+
+[脚本编辑]:
+Run, Notepad.exe "%A_ScriptFullPath%"
+Return
+
+
+[增大音量]:
+SoundSet, +5
+SoundSet, 100, WAVE
+Return
+
+
+[酷狗音乐]:
+IfWinActive, ahk_exe KuGou.exe
+{
+  ;-- 酷狗在显示和隐藏之间切换
+  WinClose
+}
+else
+{
+  ;-- 酷狗的程序路径请自己修改
+  Run, "E:\影音软件\酷狗音乐\KuGou.exe"
+}
+Return
+
+
+[减小音量]:
+SoundSet, -5
+SoundSet, 100, WAVE
+Return
+
+
+[AHK主程序]:
+Run, "%A_AhkPath%"
+Return
+
+
+[AHK目录]:
+Run, "%A_ScriptDir%\"
+Return
+
+
+[查看运行]:
+ListLines
+Return
