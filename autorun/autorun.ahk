@@ -58,3 +58,15 @@ GetTrans:
         trans := 255
     }
     return
+
+;6.	open total commander shortcut tab
+; HotKey:
+;     Alt-q: open total commander shortcut tab
+;     Then you can use shortcut tab quick open file and program
+!q::
+Run "d:\tools\totalcmd\TOTALCMD.EXE" /p=r
+WinWait, ahk_class TTOTAL_CMD
+WinActivate
+Send ^1
+
+
